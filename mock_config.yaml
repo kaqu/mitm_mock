@@ -1,0 +1,5 @@
+---
+variables:
+    _sample_number_: "([0-9]{9})"
+active_set: sample
+block_online_calls: true

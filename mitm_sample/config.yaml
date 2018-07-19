@@ -1,0 +1,14 @@
+---
+mocks:
+  - service_path: "/anything/_sample_number_"
+    enabled: true
+    interactive: false
+    status_code: 200
+    mock_content: "test.json"
+  - service_path: "/get.*"
+    enabled: true
+    interactive: true
+    status_code: 200
+    content_type: "text/html"
+    mock_content: "test.html"
+
