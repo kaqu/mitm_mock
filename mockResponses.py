@@ -32,7 +32,7 @@ def reload_mock_config_if_needed():
     else:
         return
 
-    print("\x1b[1;34;40mActive mocks set: " + mock_global_config.active_mock_set + "\x1b[0m")
+    print("\x1b[1;34;40mActive mocks set: " + str(mock_global_config.active_mock_set) + "\x1b[0m")
     print("\x1b[1;34;40mOnline calls blocked for mocks: \n" + str(mock_global_config.block_online_calls) + "\x1b[0m")
     print("\x1b[1;34;40mRecording enabled: " + str(mock_global_config.record_session) + "\x1b[0m\n")
 update_mocks()
