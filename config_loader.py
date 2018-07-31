@@ -3,11 +3,12 @@ from os.path import isfile, isdir, join, realpath, dirname
 import yaml
 
 class MockGlobalConfig:
-    def __init__(self, config_timestamp, active_mock_set, global_variables, block_online_calls):
+    def __init__(self, config_timestamp, active_mock_set, global_variables, block_online_calls, record_session):
         self.config_timestamp = config_timestamp
         self.active_mock_set = active_mock_set
         self.global_variables = global_variables
         self.block_online_calls = block_online_calls
+        self.record_session = record_session
     
     def check_needs_update(self):
         return self.config_timestamp < stat("mock_config.yaml").st_mtime
@@ -18,9 +19,12 @@ class MockSetConfig:
         self.config_timestamp = config_timestamp
         self.variables = variables
         self.service_mocks = service_mocks
-
+    
     def check_needs_update(self):
-        return self.config_timestamp < stat(self.path + "/config.yaml").st_mtime
+        if self.path:
+            return self.config_timestamp < stat(self.path + "/config.yaml").st_mtime
+        else:
+            return False
 
 
 def load_global_config():
@@ -36,23 +40,30 @@ def load_global_config():
         global_variables = {}
     if "block_online_calls" in mock_config:
         block_online_calls = mock_config["block_online_calls"]
-    else:    
+    else:
         block_online_calls = False
-    return MockGlobalConfig(config_timestamp, active_mock_set, global_variables, block_online_calls)
+    if "record_session" in mock_config:
+        record_session = mock_config["record_session"]
+    else:
+        record_session = False
+    return MockGlobalConfig(config_timestamp, active_mock_set, global_variables, block_online_calls, record_session)
 
 def load_mock_set(dir_name):
-    mock_config_path = dir_name + "/config.yaml"
-    mock_config = yaml.load(open(mock_config_path, "r"))
-    config_timestamp = stat(mock_config_path).st_mtime
-    if "variables" in mock_config:
-        variables =  mock_config["variables"]
+    if dir_name:
+        mock_config_path = "mitm_" + dir_name + "/config.yaml"
+        mock_config = yaml.load(open(mock_config_path, "r"))
+        config_timestamp = stat(mock_config_path).st_mtime
+        if "variables" in mock_config:
+            variables =  mock_config["variables"]
+        else:
+            variables = {}
+        if "mocks" in mock_config:
+            mocks =  mock_config["mocks"]
+        else:
+            mocks =  {}
+        return MockSetConfig(dir_name, config_timestamp, variables, mocks)
     else:
-        variables = {}
-    if "mocks" in mock_config:
-        mocks =  mock_config["mocks"]
-    else:
-        mocks =  {}
-    return MockSetConfig(dir_name, config_timestamp, variables, mocks)
+        return MockSetConfig(None, None, {}, [])
 
 def mock_sets_dirs():
     disk_location = dirname(realpath(__file__))
