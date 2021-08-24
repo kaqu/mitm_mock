@@ -1,10 +1,13 @@
 function FindProxyForURL(url, host) {
-    PROXY = "PROXY localhost:8080"
+  PROXY = "PROXY localhost:8080"
+  
+  if (shExpMatch(host, "httpbin.org")) {
+    return PROXY;
+  }
 
-    // only matching host will be redirected to proxy
-    if (shExpMatch(host,"*.httpbin.org")) {
-        return PROXY;
-    }
-    // Everything else directly!
-    return "DIRECT";
+  if (shExpMatch(host, "mitm.it")) {
+    return PROXY;
+  }
+  
+  return "DIRECT";
 }
