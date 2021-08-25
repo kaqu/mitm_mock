@@ -13,7 +13,7 @@ function prepare {
 	
 	networksetup -setautoproxyurl Wi-Fi "http://localhost:8888/mitmproxy.pac"
 	
-	python3 -m http.server 8888 &
+	python3 -m http.server 8888 2> /dev/null &
 	SERVER_PID=$!
 }
 
