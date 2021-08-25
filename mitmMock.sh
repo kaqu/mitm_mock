@@ -10,10 +10,11 @@ function prepare {
 	fi
 	
 	echo "[Note that it will change your autoproxy settings]"
-	networksetup -setautoproxystate Wi-Fi off
 	
-	current_dir="file://$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )/mitmproxy.pac"
-	networksetup -setautoproxyurl Wi-Fi $current_dir
+	networksetup -setautoproxyurl Wi-Fi "http://localhost:8888/mitmproxy.pac"
+	
+	python3 -m http.server 8888 &
+	SERVER_PID=$!
 }
 
 function run {
@@ -22,7 +23,8 @@ function run {
 }
 
 function cleanup {
-	echo "Cleanung up after proxy "
+	echo "Cleaning up after proxy "
+	kill $SERVER_PID
 	networksetup -setautoproxystate Wi-Fi off
 }
 
