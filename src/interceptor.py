@@ -29,6 +29,12 @@ def response(flow: mitmproxy.http.HTTPFlow) -> None:
 		and mock.enabled
 	]
 	
+	if len(matching_mocks) <= 0:
+		return None
+	
+	else:
+		pass
+		
 	mock = matching_mocks[0]
 
 	if mock is not None:
