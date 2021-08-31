@@ -2,6 +2,13 @@ from dataclasses import dataclass
 from typing import Optional
 
 @dataclass
+class Configuration:
+	path: str
+	active_mock: Optional[str]
+	offline: bool
+	record_session: bool
+
+@dataclass
 class Mock:
 	enabled: bool
 	path: str
@@ -10,3 +17,9 @@ class Mock:
 	headers: dict[str, str]
 	body: Optional[str]
 	body_path: Optional[str]
+
+@dataclass
+class MockConfiguration:
+	name: str
+	path: str
+	mocks: list[Mock]

@@ -3,123 +3,122 @@ import threading
 
 from dataclasses import dataclass
 from typing import Optional, Union, Final
-from os import stat
 from os.path import realpath, dirname
 
-from mock import Mock
+from watchdog.observers import Observer
+
+from models import Configuration, MockConfiguration, Mock
+from observers import observe_file_modifications
 
 CONFIG_FILE_NAME: Final = 'config.yaml'
 MOCK_NAME_PREFIX: Final = 'mitm_'
-CONFIG_RELOAD_INTERVAL: Final = 10
 
-@dataclass
-class Configuration:
-	path: str
-	timestamp: int
-	active_mock: Optional[str]
-	offline: bool
-	record_session: bool
-
-@dataclass
-class MockConfiguration:
-	name: str
-	path: str
-	timestamp: int
-	mocks: list[Mock]
-	
 configuration: Configuration = None
+configuration_file_observer: Observer = None
 mock_configuration: Optional[MockConfiguration] = None
+mock_configuration_file_observer: Optional[Observer] = None
 
-def start_config_autoupdate():
-	config_autoupdate()
-
-def config_autoupdate():
-	reload_config_if_needed()
+def start_autoupdating_config() -> None:
+	global configuration
+	global configuration_file_observer
 	
-	threading.Timer(CONFIG_RELOAD_INTERVAL, config_autoupdate).start()
+	print('Starting configuration autoupdating...')
+	
+	if configuration_file_observer is not None:
+		configuration_file_observer.stop()
+		configuration_file_observer.join()
+		configuration_file_observer = None
+		
+	else:
+		pass
+	
+	load_configuration()
+	
+	if configuration is None:
+		print('Failed to load configuration')
+		exit(-1) # can't use without base configuration
+	
+	else:
+		configuration_file_observer = observe_file_modifications(path=configuration.path, update=load_configuration)
+	
+	print('...configuration autoupdating started')
+	return None
 
-def reload_config_if_needed() -> None:
+def load_configuration() -> None:
+	global configuration
+	global mock_configuration
+	global mock_configuration_file_observer
+	
+	print('Loading configuration...')
+	
+	path = f'{dirname(realpath(__file__))}/..'
+	raw_config = yaml.safe_load(open(f'{path}/{CONFIG_FILE_NAME}', 'r'))
+	
+	configuration = Configuration(
+		path=path,
+		active_mock=raw_config.get('active_mock', None),
+		offline=raw_config.get('offline', False),
+		record_session=bool(raw_config.get('record', False))
+	)
+	
+	if configuration.active_mock:
+		load_mock_configuration()
+		if mock_configuration is not None:
+			print(f'Active mock configuration: {configuration.active_mock}')
+			mock_configuration_file_observer = observe_file_modifications(
+				path=mock_configuration.path, 
+				update=load_mock_configuration
+			)
+			
+		else:
+			print('Failed to load mock configuration...')
+			
+	else:
+		if mock_configuration is not None:
+			mock_configuration = None
+			print('Mock configuration disabled')
+		else:
+			pass
+			
+		if mock_configuration_file_observer is not None:
+			mock_configuration_file_observer.stop()
+			mock_configuration_file_observer.join()
+			mock_configuration_file_observer = None
+			
+		else:
+			pass
+			
+	return None
+
+def load_mock_configuration() -> None:
 	global configuration
 	global mock_configuration
 	
-	if configuration is None:
-		configuration = load_configuration()
+	if configuration.active_mock:
+		print('Loading mock configuration...')
 		
-	else:
-		configuration = reload_if_needed(configuration)
-	
-	if configuration is None:
-		exit(-1)
+		path = f'{dirname(realpath(__file__))}/../{MOCK_NAME_PREFIX}{configuration.active_mock}'
+		raw_config = yaml.safe_load(open(f'{path}/{CONFIG_FILE_NAME}', 'r'))
 		
-	elif mock_configuration is not None and configuration.active_mock is None:
-		print('\x1b[1;34;40mDisabling active mock...\x1b[0m')
-		mock_configuration = None
-		
-	elif mock_configuration is None or mock_configuration.name != configuration.active_mock:
-		mock_configuration = load_mock_configuration(name=configuration.active_mock)
-		print(f'\x1b[1;34;40mActive mock: {configuration.active_mock}\x1b[0m')
-	
-	else:
-		mock_configuration = reload_if_needed(mock_configuration)
-
-def load_configuration() -> Configuration:
-	print('\x1b[1;34;40mLoading config...\x1b[0m')
-	path = f'{dirname(realpath(__file__))}/..'
-	config = yaml.safe_load(open(f'{path}/{CONFIG_FILE_NAME}', 'r'))
-	timestamp = stat(path).st_mtime
-	
-	return Configuration(
-		path=path,
-		timestamp=timestamp,
-		active_mock=config.get('active_mock', None),
-		offline=config.get('offline', False),
-		record_session=config.get('record', False)
-	)
-
-def load_mock_configuration(name: Optional[str]) -> Optional[MockConfiguration]:
-	print('\x1b[1;34;40mLoading mock...\x1b[0m')
-	if name:
-		path = f'{dirname(realpath(__file__))}/../{MOCK_NAME_PREFIX}{name}'
-		config = yaml.safe_load(open(f'{path}/{CONFIG_FILE_NAME}', 'r'))
-		timestamp = stat(path).st_mtime
-		
-		return MockConfiguration(
-			name=name,
+		mock_configuration = MockConfiguration(
+			name=configuration.active_mock,
 			path=path,
-			timestamp=timestamp,
 			mocks=[
 				Mock(
 					enabled=mock.get('enabled', True),
 					path=mock['path'],
-					interactive=mock.get('enabled', False),
+					interactive=mock.get('interactive', False),
 					status_code=mock.get('status_code', None),
 					headers=mock.get('headers', {}),
 					body=mock.get('body', None),
 					body_path=mock.get('body_path', None),
 				) 
 				for mock 
-				in config.get('mocks', [])
+				in raw_config.get('mocks', [])
 			]
 		)
 		
 	else:
-		return None
+		mock_configuration = None
 	
-def needs_update(configuration: Union[Configuration, MockConfiguration]) -> bool:
-	return configuration.timestamp < stat(f'{configuration.path}/{CONFIG_FILE_NAME}').st_mtime
-
-def reload_if_needed(configuration: Union[Configuration, MockConfiguration]) -> Union[Configuration, MockConfiguration]:
-	if needs_update(configuration):
-		if type(configuration) is Configuration:
-			print('\x1b[1;34;40mReloading config...\x1b[0m')
-			return load_configuration()
-			
-		elif type(configuration) is MockConfiguration:
-			print('\x1b[1;34;40mReloading active mock...\x1b[0m')
-			return load_mock_configuration(configuration.name)
-			
-		else:
-			return configuration
-			
-	else:
-		return configuration
+	return None

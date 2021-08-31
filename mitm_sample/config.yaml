@@ -2,7 +2,7 @@
 mocks:
   - path: ".*"
     enabled: true
-    interactive: true
+    interactive: false
     status_code: 299
     body_path: "test.json"
     headers:
