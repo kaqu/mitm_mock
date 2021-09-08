@@ -1,6 +1,6 @@
 # Quick setup
 
-To work with proxy you need to provide config in config.yaml
+To work with proxy you need to provide config in config.yaml and modify mitmproxy.pac to provide hosts that will be passed through proxy.
 
 **Python 3 required**
 
