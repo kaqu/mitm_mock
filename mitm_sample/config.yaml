@@ -1,10 +1,11 @@
 ---
 mocks:
-  - path: ".*"
-    enabled: true
-    interactive: false
-    offline: true
-    status_code: 299
-    body_path: "test.json"
-    headers:
+  - path: ".*" # if not provided, default is ".*"
+    enabled: true # if not provided, default is true
+    interactive: false # if not provided, default is false
+    offline: true # if not provided, default is false
+    status_code: 299 # if not provided, default is None (not replaced), offline requests require status_code
+    body_path: "test.json" # if not provided, default is None (not replaced/set)
+    # body: "raw body" # can be provided instead of body_path to directly specify body, default is None (not replaced/set)
+    headers: # if not provided, default is empty (not replaced/set)
       content-type: "application/json"
