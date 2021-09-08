@@ -57,7 +57,6 @@ def load_configuration() -> None:
 	configuration = Configuration(
 		path=path,
 		active_mock=raw_config.get('active_mock', None),
-		offline=raw_config.get('offline', False),
 		record_session=bool(raw_config.get('record', False))
 	)
 	
@@ -106,8 +105,9 @@ def load_mock_configuration() -> None:
 			mocks=[
 				Mock(
 					enabled=mock.get('enabled', True),
-					path=mock['path'],
+					path=mock.get('path', None) or ".*",
 					interactive=mock.get('interactive', False),
+					offline=mock.get('offline', False),
 					status_code=mock.get('status_code', None),
 					headers=mock.get('headers', {}),
 					body=mock.get('body', None),

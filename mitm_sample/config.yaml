@@ -3,6 +3,7 @@ mocks:
   - path: ".*"
     enabled: true
     interactive: false
+    offline: true
     status_code: 299
     body_path: "test.json"
     headers:

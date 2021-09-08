@@ -5,7 +5,6 @@ from typing import Optional
 class Configuration:
 	path: str
 	active_mock: Optional[str]
-	offline: bool
 	record_session: bool
 
 @dataclass
@@ -13,6 +12,7 @@ class Mock:
 	enabled: bool
 	path: str
 	interactive: bool
+	offline: bool
 	status_code: Optional[int]
 	headers: dict[str, str]
 	body: Optional[str]
