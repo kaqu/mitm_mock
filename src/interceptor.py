@@ -104,7 +104,7 @@ def response(flow: mitmproxy.http.HTTPFlow) -> None:
 		
 	mock = matching_mocks[0]
 
-	if mock is not None:
+	if mock is not None and not mock.offline:
 		print(f'Modyfying response from {str(flow.request.url)}...')
 		
 		if mock.status_code is not None:
