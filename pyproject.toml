@@ -1,0 +1,19 @@
+[project]
+name = "mitmMock"
+version = "0.1.0"
+description = "A mitmproxy-based mock server"
+readme = "README.md"
+requires-python = ">=3.8"
+dependencies = [
+    "mitmproxy",
+    "PyYAML",
+    "watchdog",
+]
+
+[build-system]
+requires = ["uv>=0.1.17", "uv_build"]
+build-backend = "uv_build"
+backend-path = ["."]
+
+[tool.uv.sources]
+mitmMock = { workspace = true }
