@@ -3,7 +3,7 @@ import mitmproxy
 
 from typing import Optional
 
-import config
+from mitmmock import config
 
 def load(loader: mitmproxy.addonmanager.Loader):
 	config.start_autoupdating_config()

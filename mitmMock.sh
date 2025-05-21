@@ -1,33 +1,11 @@
 #!/bin/bash -e
 
-function prepare {
-	echo "Preparing mitmmock..."
-	
-	if ! command -v mitmdump &> /dev/null
-	then
-			echo "mitmproxy not installed, please run setup.sh"
-			exit
-	fi
-	
-	echo "[Note that it will change your autoproxy settings]"
-	
-	networksetup -setautoproxyurl Wi-Fi "http://localhost:8888/mitmproxy.pac"
-	
-	python3 -m http.server 8888 2> /dev/null &
-	SERVER_PID=$!
-}
+# Ensure you have activated your virtual environment (e.g., `source .venv/bin/activate`)
+# and installed dependencies (e.g., `uv pip install -e .`) before running this script.
 
-function run {
-	echo "mitmmock running at localhost:8080"
-	mitmdump -q -s ./src/interceptor.py
-}
+echo "Starting mitmMock..."
+echo "Proxy will run at localhost:8080 (by default)"
+echo "Make sure you have configured your system/device to use this proxy."
+echo "Press Ctrl+C to stop."
 
-function cleanup {
-	echo "Cleaning up after proxy "
-	kill $SERVER_PID
-	networksetup -setautoproxystate Wi-Fi off
-}
-
-trap cleanup EXIT
-prepare
-run
+mitmdump -q -s ./src/mitmmock/interceptor.py

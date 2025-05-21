@@ -51,7 +51,8 @@ def load_configuration() -> None:
 	
 	print('Loading configuration...')
 	
-	path = f'{dirname(realpath(__file__))}/..'
+	# Path should be project root, so three levels up from src/mitmmock/config.py
+	path = dirname(dirname(dirname(realpath(__file__))))
 	raw_config = yaml.safe_load(open(f'{path}/{CONFIG_FILE_NAME}', 'r'))
 	
 	configuration = Configuration(
@@ -96,12 +97,14 @@ def load_mock_configuration() -> None:
 	if configuration.active_mock:
 		print('Loading mock configuration...')
 		
-		path = f'{dirname(realpath(__file__))}/../{MOCK_NAME_PREFIX}{configuration.active_mock}'
-		raw_config = yaml.safe_load(open(f'{path}/{CONFIG_FILE_NAME}', 'r'))
+		# Project root for mock configurations as well
+		project_root = dirname(dirname(dirname(realpath(__file__))))
+		mock_config_dir_path = f'{project_root}/{MOCK_NAME_PREFIX}{configuration.active_mock}'
+		raw_config = yaml.safe_load(open(f'{mock_config_dir_path}/{CONFIG_FILE_NAME}', 'r'))
 		
 		mock_configuration = MockConfiguration(
 			name=configuration.active_mock,
-			path=path,
+			path=mock_config_dir_path,
 			mocks=[
 				Mock(
 					enabled=mock.get('enabled', True),
