@@ -4,9 +4,17 @@ To work with proxy you need to provide config in config.yaml and modify mitmprox
 
 **Python 3 required**
 
+Dependencies are managed using [uv](https://github.com/astral-sh/uv).
+
 To install:
 
-``` bash
+```bash
+uv pip install -e .
+```
+
+or simply run:
+
+```bash
 ./setup.sh
 ```
 
